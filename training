@@ -2,14 +2,19 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import numpy as np
+import pandas as pd
 from constants import MODEL1, MODEL2, MODEL3
 import matplotlib.pyplot as plt
 from torch.utils.data import DataLoader, TensorDataset
 from sklearn.metrics import precision_score, recall_score, f1_score, confusion_matrix, roc_curve, auc
 
+
 train_X = np.load("data/train_X.npy")
-X_test_scaled = np.load("data/X_test_scaled.npy")
+X_test_scaled = np.load("data/X_test.npy")
 y_test = np.load("data/y_test.npy")
+
+print(train_X.shape[1])  # Should match the input layer of your model
+print(X_test_scaled.shape[1])  # Should match the input layer of your model
 
 train_tensor = torch.tensor(train_X, dtype=torch.float32)
 train_dataset = TensorDataset(train_tensor)
@@ -19,7 +24,7 @@ model = MODEL1
 model = model.to('cuda' if torch.cuda.is_available() else 'cpu')
 
 criterion = nn.MSELoss()
-optimizer = optim.Adam(model.parameters(), lr=1e-3)
+optimizer = optim.Adam(model.parameters(), lr=1e-4)
 num_epochs = 20
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
@@ -47,7 +52,15 @@ with torch.no_grad():
 
 reconstruction_errors = np.mean((X_test_scaled - reconstructions) ** 2, axis=1)
 
-threshold = np.percentile(reconstruction_errors, 98)
+print("NaNs in X_test_scaled:", np.isnan(X_test_scaled).sum())
+print("NaNs in reconstructions:", np.isnan(reconstructions).sum())
+
+X_test_scaled = np.nan_to_num(X_test_scaled)
+reconstructions = np.nan_to_num(reconstructions)
+
+reconstruction_errors = np.mean((X_test_scaled - reconstructions) ** 2, axis=1)
+
+threshold = np.percentile(reconstruction_errors, 95)
 
 y_pred = (reconstruction_errors > threshold).astype(int)
 
@@ -76,4 +89,6 @@ plt.legend()
 plt.grid(True)
 plt.tight_layout()
 plt.show()
+
+
 
