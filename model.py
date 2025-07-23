@@ -7,7 +7,9 @@ class Autoencoder(nn.Module):
 
         # Encoder
         self.encoder = nn.Sequential(
-            nn.Linear(input_dim, 16),
+            nn.Linear(input_dim, 32),
+            nn.ReLU(),
+            nn.Linear(32, 16),
             nn.ReLU(),
             nn.Linear(16, 8),
             nn.ReLU(),
@@ -24,7 +26,9 @@ class Autoencoder(nn.Module):
             nn.ReLU(),
             nn.Linear(8, 16),
             nn.ReLU(),
-            nn.Linear(16, input_dim),
+            nn.Linear(16, 32),
+            nn.ReLU(),
+            nn.Linear(32, input_dim),
             nn.Sigmoid()  
         )
 
